@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "5FsV4gi3Skna4C1A4eW6LaEGwTdVbDPbg9rbmAx11yUAtIrvFURbGbJJDoanghZAMLKewsMywuszgUnynCDZlA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jboyce\\.nuget\\packages\\maxrev.gdal.core\\3.7.0.217\\maxrev.gdal.core.3.7.0.217.nupkg.sha512",
+    "C:\\Users\\jboyce\\.nuget\\packages\\maxrev.gdal.windowsruntime.minimal\\3.7.0.100\\maxrev.gdal.windowsruntime.minimal.3.7.0.100.nupkg.sha512"
+  ],
+  "logs": []
+}
