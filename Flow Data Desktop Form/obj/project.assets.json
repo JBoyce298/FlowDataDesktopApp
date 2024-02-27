@@ -151,11 +151,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\Flow Data Desktop Form.csproj",
+      "projectUniqueName": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Desktop Form\\Flow Data Desktop Form.csproj",
       "projectName": "Flow Data Desktop Form",
-      "projectPath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\Flow Data Desktop Form.csproj",
+      "projectPath": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Desktop Form\\Flow Data Desktop Form.csproj",
       "packagesPath": "C:\\Users\\jboyce\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\obj\\",
+      "outputPath": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Desktop Form\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\jboyce\\AppData\\Roaming\\NuGet\\NuGet.Config",

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9Qm8z3y4SqmhxJkHFtj9kHdL+1AU+YiHZU+jWuRCKmccHd9Tk4rEaXZde6qjcoPQWx+Tie7VPYaTtFk1jnzZFg==",
+  "dgSpecHash": "k6863qw+0h1GltCD4vbbrDnaPViGVUI+u9W974yrSYPzI0383pg6cgb+ixslrCitRmXzbe0ST7oAL8JOK/yo2w==",
   "success": true,
-  "projectFilePath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj",
+  "projectFilePath": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\Flow Data Class Library.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jboyce\\.nuget\\packages\\dynamiclanguageruntime\\1.3.4\\dynamiclanguageruntime.1.3.4.nupkg.sha512",
     "C:\\Users\\jboyce\\.nuget\\packages\\ironpython\\3.4.1\\ironpython.3.4.1.nupkg.sha512",

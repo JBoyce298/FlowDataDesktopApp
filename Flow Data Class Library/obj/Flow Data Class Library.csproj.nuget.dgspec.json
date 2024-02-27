@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj": {}
+    "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\Flow Data Class Library.csproj": {}
   },
   "projects": {
-    "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj": {
+    "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\Flow Data Class Library.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj",
+        "projectUniqueName": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\Flow Data Class Library.csproj",
         "projectName": "Flow Data Class Library",
-        "projectPath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\Flow Data Class Library.csproj",
+        "projectPath": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\Flow Data Class Library.csproj",
         "packagesPath": "C:\\Users\\jboyce\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Class Library\\obj\\",
+        "outputPath": "C:\\Users\\jboyce\\source\\repos\\FlowDataDesktopApp\\Flow Data Class Library\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\jboyce\\AppData\\Roaming\\NuGet\\NuGet.Config",
