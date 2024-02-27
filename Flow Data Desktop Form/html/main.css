@@ -1,11 +1,23 @@
-﻿body {
+﻿* {
+    margin-top: 0;
+}
+
+head {
+    padding: 0;
+}
+
+body {
     background-color: white;
 }
 
 #map {
-    height: 95vh;
+    height: 88vh;
     background-color: white;
     border: 2px solid;
+}
+
+#search_bar {
+    padding: 2px;
 }
 
 .messages {

@@ -1,11 +1,9 @@
 {
   "version": 2,
-  "dgSpecHash": "PhyrSKFnbCMBpsjoYOH341TESFrAwtbHI0l8vvu/Q8vrXwMQ37SBySEaCMVAhlHFNO3d3/H38KX8PU/0bMusPA==",
+  "dgSpecHash": "oihD+CMQASl5mKjwd8tVPY8+KXpgM8xTfO7SG+FX6KsIScvEFoMy0/aJpY76ii5XFqM9otVdooLGnBeHgpQ+lw==",
   "success": true,
   "projectFilePath": "C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\Flow Data Desktop Form.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\jboyce\\.nuget\\packages\\maxrev.gdal.core\\3.7.0.217\\maxrev.gdal.core.3.7.0.217.nupkg.sha512",
-    "C:\\Users\\jboyce\\.nuget\\packages\\maxrev.gdal.windowsruntime.minimal\\3.7.0.100\\maxrev.gdal.windowsruntime.minimal.3.7.0.100.nupkg.sha512",
     "C:\\Users\\jboyce\\.nuget\\packages\\microsoft.web.webview2\\1.0.2088.41\\microsoft.web.webview2.1.0.2088.41.nupkg.sha512"
   ],
   "logs": []

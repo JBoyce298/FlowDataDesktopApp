@@ -40,6 +40,11 @@ subgroup_url = f"{request_url}/streamflow"
 commid = sys.argv[1]
 sdate = sys.argv[2]
 edate = sys.argv[3]
+outputFileName = sys.argv[4]
+
+print("File Name: " + outputFileName)
+
+print("ARGS: " + commid + " " + sdate + " " + edate + " " + outputFileName)
 
 # corrects formatting whether one comid or multiple
 ids = []
@@ -56,7 +61,7 @@ print("Starting to read zarr data from " + sdate + " to " + edate + " for comd i
 
 comids = ids
 start_date = datetime.strptime(sdate, "%Y-%m-%d")
-end_date = datetime.strptime(edate, "%Y-%m-%d") + timedelta(days=1)
+end_date = datetime.strptime(edate, "%Y-%m-%d")
 
 print("Setting Up Dataset...")
 
@@ -111,7 +116,7 @@ for vel in velvars:
 
 # creates new string array to contain each line to be printed to output file
 dtstring = []
-dtstring.append(str(commid) + '\n')
+# dtstring.append(str(commid) + '\n')
 
 # loops through time array along with a counter to create each line in a specified format
 for i, dt in enumerate(numpy_dtcoords):
@@ -122,13 +127,13 @@ for i, dt in enumerate(numpy_dtcoords):
     dtstring.append(datastr)
 
 # writes the lines of the new string array to file
-print("Writing Data to File...")
+print("Writing Data to File " + outputFileName + " ...")
 
-currentTime = datetime.now().strftime("%Y-%m-%d %H")
+# currentTime = datetime.now().strftime("%Y-%m-%d %H")
 
-filename = commid + "_" + sdate + "_" + edate + "_" + currentTime +".txt"
+# filename = commid + "_" + sdate + "_" + edate + "_" + currentTime +".txt"
 
-# with open(filename, 'w') as output:
-#     output.writelines(dtstring)
-with open('output.txt', 'w') as output:
+with open(outputFileName, 'w') as output:
     output.writelines(dtstring)
+# with open('output.txt', 'a') as output:
+#     output.writelines(dtstring)

@@ -1,13 +1,19 @@
+/* No longer using Gdal
 using OSGeo.GDAL;
 using OSGeo.OGR;
 using OSGeo.OSR;
 using MaxRev.Gdal.Core;
+*/
 using Microsoft.Web.WebView2.Core;
 using System.Data;
 using System.Diagnostics;
 using System.Net;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 using System.Windows.Forms;
+using static System.Windows.Forms.LinkLabel;
+using System.Runtime.InteropServices;
+using System;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Flow_Data_Desktop_Form
 {
@@ -30,8 +36,8 @@ namespace Flow_Data_Desktop_Form
             //webView21.Source = new Uri("C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\html\\leafletMap.html");
             webView21.Visible = true;
             //label1.Text = Environment.CurrentDirectory + "";
-            GdalBase.ConfigureAll();
-            GdalBase.ConfigureGdalDrivers();
+            //GdalBase.ConfigureAll();
+            //GdalBase.ConfigureGdalDrivers();
         }
 
         private Task InitializeAsync()
@@ -66,132 +72,307 @@ namespace Flow_Data_Desktop_Form
             }, null);*/
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        public async void getHTMLData()
         {
-            // textBox4.Text = "";
+            await webView21.ExecuteScriptAsync("window.chrome.webview.postMessage(document.getElementById('comid').value)");
+        }
 
-            //opt 1: run separate python executable
-            //Process.Start(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\test.exe"));
-            string sDate = dateTimePicker1.Value.ToString("yyyy-MM-dd");
-            string eDate = dateTimePicker2.Value.ToString("yyyy-MM-dd");
+        private void webView21_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            //For retrieving comid when map is clicked
+            textBox1.Text = e.TryGetWebMessageAsString();
+        }
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            //Create identifiers for input objects from user
+            var dateOne = dateTimePicker1.Value;
+            var dateTwo = dateTimePicker2.Value;
+            string sDate = dateOne.ToString("yyyy-MM-dd");
+            string eDate = dateTwo.ToString("yyyy-MM-dd");
             string comids = textBox1.Text;
-            string paramsString = comids + " " + sDate + " " + eDate;
+            //string pat = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + firstFile);
+
+            //Focus on comid user is requesting data of
+            string message = "FocusOn|" + comids;
+            webView21.CoreWebView2.PostWebMessageAsString(message);
 
             string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\testbuild.exe");
 
-            Process process = Process.Start(path, paramsString);
-            // Process process2 = Process.Start(path, paramsString);
-            // Process process3 = Process.Start(path, paramsString);
-            process.WaitForExit();
-            // process2.WaitForExit();
-            // process3.WaitForExit();
-            /*
-            Process process = new Process();
-            process.StartInfo.FileName = "cmd.exe";
+            //Create file list and date list that can be lengthen depending on how much of a timespan user requests
+            List<string> fileList = new List<string>();
+            List<string[]> dateList = new List<string[]>();
 
-            string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python");
-            process.StartInfo.Arguments = "python ..\\..\\..\\python\\test.py";
-            process.Start();
-            process.WaitForExit();
-            */
+            //Populate file list with ouput file names and date list with arrays of dates for processes to use
+            var diff = dateTwo - dateOne;
+            double days = diff.TotalDays;
+            double daysLeft = days;
+            var tempStartDate = dateTimePicker1.Value;
+            var endDate = dateTimePicker2.Value;
+            for (int i = 0; i < days; i += 1461)
+            {
+                string newFile = "output" + i / 1461 + ".txt";
+                fileList.Add(newFile);
 
-            DateTime cTime = DateTime.Now;
-            string currentTime = cTime.ToString("yyyy-MM-dd HH");
+                using (FileStream fs = File.Create(Path.Combine(Environment.CurrentDirectory, newFile))) ;
 
-            string fileName = comids + "_" + sDate + "_" + eDate + "_" + currentTime;
+                if(daysLeft > 1461)
+                {
+                    var newEnd = endDate;
+                    if (tempStartDate == dateOne)
+                    {
+                        newEnd = tempStartDate.AddDays(1461);
+                    }
+                    else
+                    {
+                        newEnd = tempStartDate.AddDays(1460);
+                    }
+                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), newEnd.ToString("yyyy-MM-dd") };
+                    dateList.Add(dates);
 
-            //string text = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
-            string text = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\output.txt"));
-            Console.WriteLine(text);
+                    tempStartDate = newEnd.AddDays(1);
+
+                    daysLeft -= 1461;
+                }
+                else
+                {
+                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd") };
+                    dateList.Add(dates);
+                }
+            }
+
+            //Runs each process according to the list of file names and date arrays. Stores them in a list for tracking process completion
+            List<Process> procsList = new List<Process>();
+            int processNum = 0;
+            foreach(string file in fileList)
+            {
+                string paramsString = comids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
+                Process process = Process.Start(path, paramsString);
+                procsList.Add(process);
+                //procs[processNum] = Process.Start(path, paramsString);
+                processNum++;
+            }
+
+            //Checks processes to ensure all of them have closed before code continues further
+            foreach (Process proc in procsList)
+            {
+                if(proc != null)
+                {
+                    try
+                    {
+                        Process.GetProcessById(proc.Id);
+                        proc.WaitForExit();
+                    }
+                    catch (ArgumentException)
+                    {
+                        //process not running anymore
+                    }
+                }
+            }
+
+            //Conglomerates data from all output files into one list that contains all the data retrieved
 
             //string[] data = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
-            string[] data = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\output.txt"));
-            Console.WriteLine(data);
+            string[] data = { };
+            foreach (string file in fileList)
+            {
+                //string[] tempData = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + firstFile));
+                string[] tempData = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, file));
+                List<string> tempList = new List<string>();
+                tempList.AddRange(data);
+                tempList.AddRange(tempData);
+                data = tempList.ToArray();
+            }
+            //string[] data = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\output.txt"));
+            //Debug.WriteLine(data);
 
-            // textBox4.Text = text;
+            DateTime cTime = DateTime.Now;
+            string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
 
+            string fileName = "(" + comids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
+
+            //Writes collective data into a file within the logs
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\ComID Data Requests\" + fileName + ".txt")))
+            {
+                outputFile.WriteLine("[" + comids + "]");
+                foreach (string line in data)
+                {
+                    outputFile.WriteLine(line);
+                }
+            }
+
+            //Puts retrieved data into a data table to be read by the use in the application
             DataTable dt = new DataTable();
             dt.Columns.Add("date", typeof(string));
             dt.Columns.Add("streamflow", typeof(double));
             dt.Columns.Add("velocity", typeof(double));
             for (int i = 0; i < data.Length; i++) //Here you will read each row from file and fill variables dateFromFile, flowFromFile, and velocityFromFile
             {
-                DataRow dr = dt.NewRow();
-                string[] val = data[i].Split("*");
-                dr["date"] = val[2];
-                dr["streamflow"] = val[0];
-                dr["velocity"] = val[1];
-                dt.Rows.Add(dr);
+                //Debug.WriteLine(data[i]);
+                if (i != 0)
+                {
+                    DataRow dr = dt.NewRow();
+                    string[] val = data[i].Split("*");
+                    
+                    dr["date"] = val[2];
+
+                    double streamDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
+                    dr["streamflow"] = streamDouble;
+
+                    double velocityDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
+                    dr["velocity"] = velocityDouble;
+
+                    dt.Rows.Add(dr);
+                    
+                }
             }
-            //dataGridView1 is the C# DataGridView you have on your form
+            //dataGridView1 is the C# DataGridView
+            Debug.WriteLine(dt);
             dataGridView1.DataSource = dt;
+        }
 
-            //string output = process.StandardOutput.ReadToEnd();
-
+        // To be used once the Gage Data tab is ready. For now, the tab has no functionality. 
+        private void button2_Click(object sender, EventArgs e)
+        {
             /*
-            var process = Process.Start(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\test.exe"));
-            process.WaitForExit();
+            var dateOne = dateTimePicker4.Value;
+            var dateTwo = dateTimePicker3.Value;
+            string sDate = dateOne.ToString("yyyy-MM-dd");
+            string eDate = dateTwo.ToString("yyyy-MM-dd");
+            string gageids = textBox2.Text;
 
-            textBox4.AppendText("Process Finshed:");
-            textBox4.AppendText(File.ReadAllText(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\test.txt")));
-            */
+            //string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\testbuild.exe");
 
+            List<string> fileList = new List<string>();
+            List<string[]> dateList = new List<string[]>();
 
-            /*
-            //opt 2: use GDAL to read zarr data
-            //var driver = Gdal.GetDriverByName("GTiff");
-            /*var driver = Gdal.GetDriverByName("Zarr");
-            //var driver2 = Gdal.GetDriverByName("XArray");
-            // Register GDAL drivers
-            Gdal.AllRegister();
-            Ogr.RegisterAll();
-
-            // Set AWS credentials and region if not already set in environment variables
-            Gdal.SetConfigOption("AWS_REGION", "us-east-1");
-            Gdal.SetConfigOption("AWS_ACCESS_KEY_ID", "");
-            Gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", "");
-            //Gdal.SetConfigOption("AWS_SESSION_TOKEN", "your-session-token"); //Optional
-            Gdal.SetConfigOption("GDAL_HTTP_UNSAFESSL", "YES");
-            Gdal.SetConfigOption("USE_ZMETADATA", "YES");
-            Gdal.SetConfigOption("DIM_X", "feature_id: 7994");
-            Gdal.SetConfigOption("DIM_Y", "time: 367439");
-
-            // Specify the path to the Zarr file in the S3 bucket
-            //string zarrPath = "/vsis3/your-bucket-name/your-zarr-file-path";
-            string zarrPath = "/vsis3/noaa-nwm-retrospective-2-1-zarr-pds/chrtout.zarr";
-
-            //textBox4.Text = Gdal.GetCacheMax() + "";
-
-            // Open the dataset
-            Dataset dataset = Gdal.Open(zarrPath, Access.GA_ReadOnly);
-            if (dataset == null)
+            var diff = dateTwo - dateOne;
+            double days = diff.TotalDays;
+            //bool firstRun = true;
+            double daysLeft = days;
+            var tempStartDate = dateTimePicker4.Value;
+            var endDate = dateTimePicker3.Value;
+            for (int i = 0; i < days; i += 1461)
             {
-                textBox4.Text = "Cannot open dataset";
-                Console.WriteLine("Cannot open dataset");
-                return;
+                string newFile = "output" + i / 1461 + ".txt";
+                fileList.Add(newFile);
+
+                using (FileStream fs = File.Create(Path.Combine(Environment.CurrentDirectory, newFile))) ;
+
+                if (daysLeft > 1461)
+                {
+                    var newEnd = endDate;
+                    if (tempStartDate == dateOne)
+                    {
+                        newEnd = tempStartDate.AddDays(1461);
+                        //firstRun = false;
+                    }
+                    else
+                    {
+                        newEnd = tempStartDate.AddDays(1460);
+                    }
+                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), newEnd.ToString("yyyy-MM-dd") };
+                    dateList.Add(dates);
+
+                    tempStartDate = newEnd.AddDays(1);
+
+                    daysLeft -= 1461;
+                }
+                else
+                {
+                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd") };
+                    dateList.Add(dates);
+                }
+            }
+        
+
+            // Process Handling
+             
+            List<Process> procsList = new List<Process>();
+            int processNum = 0;
+            foreach (string file in fileList)
+            {
+                string paramsString = comids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
+                Process process = Process.Start(path, paramsString);
+                procsList.Add(process);
+                //procs[processNum] = Process.Start(path, paramsString);
+                processNum++;
+            }
+            
+
+            foreach (Process proc in procsList)
+            {
+                if (proc != null)
+                {
+                    try
+                    {
+                        Process.GetProcessById(proc.Id);
+                        proc.WaitForExit();
+                    }
+                    catch (ArgumentException)
+                    {
+                        //process not running anymore
+                    }
+                }
+            }
+            
+
+            string[] data = { };
+            foreach (string file in fileList)
+            {
+                string[] tempData = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, file));
+                List<string> tempList = new List<string>();
+                tempList.AddRange(data);
+                tempList.AddRange(tempData);
+                data = tempList.ToArray();
             }
 
-            // Access the raster band (assuming a single band for simplicity)
-            OSGeo.GDAL.Band band = dataset.GetRasterBand(1);
-            if (band == null)
+            DateTime cTime = DateTime.Now;
+            string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
+
+            string fileName = "(" + gageids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
+
+            //StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
+
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\Gage Data Requests\" + fileName + ".txt")))
             {
-                textBox4.Text = "Cannot get raster band";
-                Console.WriteLine("Cannot get raster band");
-                return;
+                outputFile.WriteLine("[" + gageids + "]");
+                foreach (string line in data)
+                {
+                    outputFile.WriteLine(line);
+                }
             }
 
-            // Read a block of data (e.g., 100x100 pixels)
-            int blockXSize = 100;
-            int blockYSize = 100;
-            int[] buffer = new int[blockXSize * blockYSize];
-            //band.ReadBlock(0, 0, buffer);
+            DataTable dt = new DataTable();
+            /*
+            dt.Columns.Add("date", typeof(string));
+            dt.Columns.Add("streamflow", typeof(double));
+            dt.Columns.Add("velocity", typeof(double));
+            for (int i = 0; i < data.Length; i++) //Here you will read each row from file and fill variables dateFromFile, flowFromFile, and velocityFromFile
+            {
+                //Debug.WriteLine(data[i]);
+                if (i != 0)
+                {
+                    DataRow dr = dt.NewRow();
+                    string[] val = data[i].Split("*");
 
-            // Process the data as needed
-            // ...
+                    dr["date"] = val[2];
 
-            // Clean up
-            band.Dispose();
-            dataset.Dispose();
+                    double streamDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
+                    dr["streamflow"] = streamDouble;
+
+                    double velocityDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
+                    dr["velocity"] = velocityDouble;
+
+                    dt.Rows.Add(dr);
+
+                }
+            }
+
+            //dataGridView1 is the C# DataGridView you have on your form
+            Debug.WriteLine(dt);
+            
+            dataGridView2.DataSource = dt;
             */
         }
     }

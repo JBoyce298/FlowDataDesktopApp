@@ -40,14 +40,6 @@
         "net6.0-windows7.0": {
           "targetAlias": "net6.0-windows",
           "dependencies": {
-            "MaxRev.Gdal.Core": {
-              "target": "Package",
-              "version": "[3.7.0.217, )"
-            },
-            "MaxRev.Gdal.WindowsRuntime.Minimal": {
-              "target": "Package",
-              "version": "[3.7.0.100, )"
-            },
             "Microsoft.Web.WebView2": {
               "target": "Package",
               "version": "[1.0.2088.41, )"
