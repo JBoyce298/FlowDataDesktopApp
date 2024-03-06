@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -16,6 +16,7 @@
             integrity="sha512-YZ6b5bXRVwipfqul5krehD9qlbJzc6KOGXYsDjU9HHXW2gK57xmWl2gU6nAegiErAqFXhygKIsWPKbjLPXVb2g=="
             crossorigin=""></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!--<script src="gaugeGeoData.js"></script>-->
 
     <style> 
 
@@ -46,6 +47,12 @@
     <p class="hidden" id="lat" value=""></p>
     <p class="hidden" id="lon" value=""></p>
     <script>
+        //import features from './NHDPlusV21_US_gage.json' assert {type: 'json'};
+
+        //console.log(features);
+
+        //let gaugeJson = ;
+
         var allShapes = null;
         var geoLayer;
         let SELECTED_LAYER = null;
@@ -156,6 +163,65 @@
             weight: 1,
         }).addTo(MAP);
 
+        //let pathName = window.location.pathname;
+
+        // var req = new XMLHttpRequest();
+        // req.onload = function(){
+        //     testP = this.responseText;
+        // };
+        // req.open('GET', './NHDPlusV21_US_gage.geojson');
+        // req.send();
+
+        //const textGauge = fetch('./NHDPlusV21_US_gage.json');
+        //console.log(gaugeJson);
+
+
+
+        // let dirName = document.getElementById("directoryName");
+        // dirName.innerHTML = testP;
+        //var gaugeGeo = FileReader.;
+        //const GAUGE_LAYER = L.geoJSON(data).addTo(MAP);
+            //onEachFeature: GaugeonEachFeature
+        // GAUGE_LAYER.setStyle({
+        //     color: "purple",
+        //     fillOpacity: 0,
+        //     weight: 1,
+        // }).addTo(MAP);
+        
+        // CONTAMINANT_LAYER = L.layerGroup();
+        // for (let element of geoJSONCatchList) {
+        //     //Creates a new feature using the JSON
+        //     let newFeature = L.geoJSON(element[1]).addTo(CONTAMINANT_LAYER);
+
+        //     newFeature.setStyle({
+        //         color: "black",
+        //         fillOpacity: 0.1,
+        //     });
+        // }
+        // for (let element of geoJSONFlowList) {
+        //     //Creates a new feature using the JSON
+        //     let newFeature = L.geoJSON(element[1]).addTo(CONTAMINANT_LAYER);
+        //     //Loops through times when catchments were first contaminated
+        //     const contaminateCatchment = timeWhenTrue.find((catchment) => {
+        //         return catchment[0] === element[0];
+        //     });
+        //     //Checks Com ID to ensure the correct geometry is changing color
+        //     if (contaminateCatchment && contaminateCatchment[1] <= smallDateStrings[dateSlider.value]) {
+        //         //If Catchment is contaminated at current time, it will appear red
+        //         newFeature.setStyle({
+        //             color: "red",
+        //         });
+        //     } else {
+        //         newFeature.setStyle({
+        //             color: "blue",
+        //         });
+        //     }
+        // }
+        // //Checks to see if the layer should be re-added to the map
+        // if (contaminateLayerOn) {
+        //     CONTAMINANT_LAYER.addTo(MAP);
+        // }
+
         /*
         const SELECTED_LAYER = L.esri
             .featureLayer({
@@ -167,6 +233,10 @@
             weight: 1,
         })
         */
+        function GaugeonEachFeature(feature, layer) {
+            return null;
+        }
+
         function CatchonEachFeature(feature, layer) {
             layer.on('click', function (e) {
                 if (layer.feature.properties.FEATUREID != null) sendMessageToDotnet(layer.feature.properties.FEATUREID.toString());
