@@ -14,6 +14,8 @@ using static System.Windows.Forms.LinkLabel;
 using System.Runtime.InteropServices;
 using System;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Text;
+using Microsoft.VisualBasic.Logging;
 
 namespace Flow_Data_Desktop_Form
 {
@@ -116,7 +118,7 @@ namespace Flow_Data_Desktop_Form
 
                 using (FileStream fs = File.Create(Path.Combine(Environment.CurrentDirectory, newFile))) ;
 
-                if(daysLeft > 1461)
+                if (daysLeft > 1461)
                 {
                     var newEnd = endDate;
                     if (tempStartDate == dateOne)
@@ -144,7 +146,7 @@ namespace Flow_Data_Desktop_Form
             //Runs each process according to the list of file names and date arrays. Stores them in a list for tracking process completion
             List<Process> procsList = new List<Process>();
             int processNum = 0;
-            foreach(string file in fileList)
+            foreach (string file in fileList)
             {
                 string paramsString = comids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
                 Process process = Process.Start(path, paramsString);
@@ -156,7 +158,7 @@ namespace Flow_Data_Desktop_Form
             //Checks processes to ensure all of them have closed before code continues further
             foreach (Process proc in procsList)
             {
-                if(proc != null)
+                if (proc != null)
                 {
                     try
                     {
@@ -213,7 +215,7 @@ namespace Flow_Data_Desktop_Form
                 {
                     DataRow dr = dt.NewRow();
                     string[] val = data[i].Split("*");
-                    
+
                     dr["date"] = val[2];
 
                     double streamDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
@@ -223,7 +225,7 @@ namespace Flow_Data_Desktop_Form
                     dr["velocity"] = velocityDouble;
 
                     dt.Rows.Add(dr);
-                    
+
                 }
             }
             //dataGridView1 is the C# DataGridView
@@ -234,7 +236,9 @@ namespace Flow_Data_Desktop_Form
         // To be used once the Gage Data tab is ready. For now, the tab has no functionality. 
         private void button2_Click(object sender, EventArgs e)
         {
-            /*
+            string url = "";
+
+
             var dateOne = dateTimePicker4.Value;
             var dateTwo = dateTimePicker3.Value;
             string sDate = dateOne.ToString("yyyy-MM-dd");
@@ -242,6 +246,8 @@ namespace Flow_Data_Desktop_Form
             string gageids = textBox2.Text;
 
             //string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\testbuild.exe");
+
+            var gaugeData = GetGaugeData();
 
             List<string> fileList = new List<string>();
             List<string[]> dateList = new List<string[]>();
@@ -284,38 +290,37 @@ namespace Flow_Data_Desktop_Form
                     dateList.Add(dates);
                 }
             }
-        
 
             // Process Handling
-             
-            List<Process> procsList = new List<Process>();
-            int processNum = 0;
-            foreach (string file in fileList)
-            {
-                string paramsString = comids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
-                Process process = Process.Start(path, paramsString);
-                procsList.Add(process);
-                //procs[processNum] = Process.Start(path, paramsString);
-                processNum++;
-            }
-            
+            /*
+           List<Process> procsList = new List<Process>();
+           int processNum = 0;
+           foreach (string file in fileList)
+           {
+               string paramsString = gageids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
+               Process process = Process.Start(path, paramsString);
+               procsList.Add(process);
+               //procs[processNum] = Process.Start(path, paramsString);
+               processNum++;
+           }
 
-            foreach (Process proc in procsList)
-            {
-                if (proc != null)
-                {
-                    try
-                    {
-                        Process.GetProcessById(proc.Id);
-                        proc.WaitForExit();
-                    }
-                    catch (ArgumentException)
-                    {
-                        //process not running anymore
-                    }
-                }
-            }
-            
+
+           foreach (Process proc in procsList)
+           {
+               if (proc != null)
+               {
+                   try
+                   {
+                       Process.GetProcessById(proc.Id);
+                       proc.WaitForExit();
+                   }
+                   catch (ArgumentException)
+                   {
+                       //process not running anymore
+                   }
+               }
+           }
+           */
 
             string[] data = { };
             foreach (string file in fileList)
@@ -374,6 +379,124 @@ namespace Flow_Data_Desktop_Form
             
             dataGridView2.DataSource = dt;
             */
+        }
+
+        private static string ConstructLookupURL(int gageID)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
+            sb.Append(@"search_site_no=" + gageID.ToString() + "&");
+            sb.Append(@"&search_site_no_match_type=anywhere&");
+            sb.Append(@"group_key=NONE&");
+            sb.Append(@"format=sitefile_output&");
+            sb.Append(@"sitefile_output_format=rdb&");
+            sb.Append(@"column_name=agency_cd&");
+            sb.Append(@"column_name=site_no&");
+            sb.Append(@"column_name=station_nm&");
+            sb.Append(@"column_name=site_tp_cd&");
+            sb.Append(@"column_name=dec_lat_va&");
+            sb.Append(@"column_name=dec_long_va&");
+            sb.Append(@"range_selection=days&");
+            sb.Append(@"period=7&");
+            sb.Append(@"begin_date=2020-12-09&");
+            sb.Append(@"end_date=2020-12-16&");
+            sb.Append(@"date_format=YYYY-MM-DD&");
+            sb.Append(@"rdb_compression=file&");
+            sb.Append(@"list_of_search_criteria=lat_long_bounding_box%2Crealtime_parameter_selection");
+
+            return sb.ToString();
+        }
+
+        private async Task<string> DownloadData(string url, int retries)
+        {
+            string data = "";
+            HttpClient hc = new HttpClient();
+            HttpResponseMessage wm = new HttpResponseMessage();
+            int maxRetries = 10;
+
+            try
+            {
+                string status = "";
+
+                while (retries < maxRetries && !status.Contains("OK"))
+                {
+                    wm = await hc.GetAsync(url);
+                    var response = wm.Content;
+                    status = wm.StatusCode.ToString();
+                    data = await wm.Content.ReadAsStringAsync();
+                    retries += 1;
+                    if (!status.Contains("OK"))
+                    {
+                        Thread.Sleep(1000 * retries);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //debug.writeline was previously log.warning
+                if (retries < maxRetries)
+                {
+                    retries += 1;
+                    Debug.WriteLine("Error: Failed to download usgs stream gauge data. Retry {0}:{1}, Url: {2}", retries, maxRetries, url);
+                    Random r = new Random();
+                    Thread.Sleep(5000 + (r.Next(10) * 1000));
+                    return this.DownloadData(url, retries).Result;
+                }
+                wm.Dispose();
+                hc.Dispose();
+                Debug.WriteLine(ex, "Error: Failed to download usgs stream gauge data.");
+                return null;
+            }
+            wm.Dispose();
+            hc.Dispose();
+            return data;
+        }
+
+        private static string ConstructURL(out string errorMsg, string stationID, string startDate, string endDate)
+        {
+            errorMsg = "";
+            //if (!cInput.Geometry.GeometryMetadata.ContainsKey("gaugestation"))
+            //{
+            //    errorMsg = "Stream Gauge station id not found. 'gaugestation' required in Geometry MetaData.";
+            //    return null;
+            //}
+            //string stationID = cInput.Geometry.GeometryMetadata["gaugestation"];
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
+            sb.Append(@"search_site_no=" + stationID + "&");
+            //sb.Append(@"search_site_no_match_type=exact&");
+            sb.Append(@"&search_site_no_match_type=anywhere&");
+            sb.Append(@"group_key=NONE&");
+            sb.Append(@"index_pmcode_00060=1&");
+            sb.Append(@"sitefile_output_format=html_table&");
+            sb.Append(@"column_name=agency_cd&");
+            sb.Append(@"column_name=site_no&");
+            sb.Append(@"column_name=station_nm&");
+            sb.Append(@"range_selection=date_range&");
+            sb.Append(@"begin_date=" + startDate + "&");
+            sb.Append(@"end_date=" + endDate + "&");
+            sb.Append(@"format=rdb&");
+            sb.Append(@"date_format=YYYY-MM-DD&");
+            sb.Append(@"rdb_compression=value&");
+            sb.Append(@"list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
+
+            return sb.ToString();
+        }
+
+        public List<string> GetGaugeData(out string errorMsg, string stationID, string startDate, string endDate)
+        {
+            errorMsg = "";
+
+            // Constructs the url for the USGS stream gauge data request and it's query string.
+            string url = ConstructURL(out errorMsg, stationID, startDate, endDate);
+            if (errorMsg.Contains("ERROR")) { return null; }
+
+            // Uses the constructed url to download time series data.
+            string data = DownloadData(url, 0).Result;
+            if (errorMsg.Contains("ERROR") || data == null) { return null; }
+
+            return new List<string>() { data, url };
         }
     }
 }
