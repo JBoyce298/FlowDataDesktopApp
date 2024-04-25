@@ -46,6 +46,14 @@
     <p class="hidden" id="comid" value=""></p>
     <p class="hidden" id="lat" value=""></p>
     <p class="hidden" id="lon" value=""></p>
+    <script src="./gage_geo.js"></script>
+    <script src="./gage_shape.js"></script>
+    <script src="./newergeo.js"></script>
+    <script src="./Autolinker.min.js"></script>
+    <link rel="stylesheet" href="markers\MarkerCluster.css"></script>
+    <link rel="stylesheet" href="markers\MarkerCluster.Default.css"></script>
+    <script src="markers\leaflet.markercluster-src.js"></script>
+    <script src="markers\MarkerCluster.js"></script>
     <script>
         //import features from './NHDPlusV21_US_gage.json' assert {type: 'json'};
 
@@ -72,6 +80,9 @@
         // flowlines
         const URL_NP21_FLOWLINES =
             "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21/MapServer/0";
+
+        const GEO_TILE_SET = 
+            "https://studio.mapbox.com/tilesets/boycejr.d85fvy9x";
 
         // build base map layer
         var MAP = L.map("map").fitBounds([
@@ -161,7 +172,7 @@
             color: "orange",
             fillOpacity: 0,
             weight: 1,
-        }).addTo(MAP);
+        });//.addTo(MAP);
 
         //let pathName = window.location.pathname;
 
@@ -180,7 +191,244 @@
         // let dirName = document.getElementById("directoryName");
         // dirName.innerHTML = testP;
         //var gaugeGeo = FileReader.;
-        //const GAUGE_LAYER = L.geoJSON(data).addTo(MAP);
+        //var orangeIcon =  new LeafIcon({iconUrl: 'NHDPlusV21_US_gage_0.png'});
+        // $.getJSON(shapeUSData, function(data) {
+        //    var my_json = L.geoJson(data, {
+        //     pointToLayer: function(feature, latlng) {
+        //         var smallIcon = L.Icon({
+        //             options: {
+        //                 iconSize: [27, 27],
+        //                 iconAnchor: [13, 27],
+        //                 popupAnchor:  [1, -24],
+        //                 iconUrl: 'NHDPlusV21_US_gage_0.png'
+        //             }
+        //         });
+        //         return L.marker(latlng, {icon: smallIcon});
+        //     },
+        //    onEachFeature: function (feature, layer) {
+        //            layer.bindPopup(feature.properties.ATT1 + '<br />'
+        //                                          + feature.properties.ATT2);
+        //    }
+        //  });
+        // my_json.addTo(markers.addTo(map));
+        // TOC.addOverlay(my_json, "My layer name in TOC");
+        // map.removeLayer(my_json); 
+        // });
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        document.querySelector(".leaflet-popup-pane").addEventListener("load", function(event) {
+          var tagName = event.target.tagName,
+            popup = MAP._popup;
+          // Also check if flag is already set.
+          if (tagName === "IMG" && popup && !popup._updated) {
+            popup._updated = true; // Set flag to prevent looping.
+            popup.update();
+          }
+        }, true);
+        var bounds_group = new L.featureGroup([]);
+        function pop_NHDPlusV21_US_gage_0(feature, layer) {
+            /*
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['REACHCODE'] !== null ? autolinker.link("REACHCODE: " + feature.properties['REACHCODE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['REACHRESOL'] !== null ? autolinker.link("REACHRESOL: " + feature.properties['REACHRESOL'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Measure'] !== null ? autolinker.link("Measure: " + feature.properties['Measure'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['STATE_CD'] !== null ? autolinker.link("STATE_CD: " + feature.properties['STATE_CD'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['STATE'] !== null ? autolinker.link("STATE: " + feature.properties['STATE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ActiveDate'] !== null ? autolinker.link("ActiveDate: " + (dateUNIXConvert(feature.properties['ActiveDate'].toLocaleString()))) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['GagesII'] !== null ? autolinker.link("GagesII: " + feature.properties['GagesII'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+            */
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SOURCE_FEA'] !== null ? autolinker.link("SOURCE_FEA: " + feature.properties['SOURCE_FEA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Active'] !== null ? autolinker.link("Active: " + (parseInt(feature.properties['Active'].toLocaleString()) == 1 ? "True" : "False")) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link("OBJECTID: " + feature.properties['OBJECTID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SOURCE_ORI'] !== null ? autolinker.link("SOURCE_ORI: " + feature.properties['SOURCE_ORI'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FEATUREDET'] !== null ? autolinker.link("FEATUREDET: " + feature.properties['FEATUREDET'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['EventType'] !== null ? autolinker.link("EventType: " + feature.properties['EventType'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['FLComID'] !== null ? autolinker.link("FLComID: " + feature.properties['FLComID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['AGENCY_CD'] !== null ? autolinker.link("AGENCY_CD: " + feature.properties['AGENCY_CD'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['STATION_NM'] !== null ? autolinker.link("STATION_NM: " + feature.properties['STATION_NM'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DASqMi'] !== null ? autolinker.link("DASqMi: " + feature.properties['DASqMi'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DASqKm'] !== null ? autolinker.link("DASqKm: " + feature.properties['DASqKm'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['LatSite'] !== null ? autolinker.link("LatSite: " + feature.properties['LatSite'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['LonSite'] !== null ? autolinker.link("LonSite: " + feature.properties['LonSite'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+            var popup = layer.getPopup();
+            var content = popup.getContent();
+            var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
+            popup.setContent(updatedContent);
+        }
+
+        function dateUNIXConvert(unixTime){
+            var timeInt = parseInt(unixTime);
+            let dateObj = new Date(timeInt * 1000);
+            let utcString = dateObj.toUTCString();
+            return utcString;
+        }
+
+        //green
+        function activeGauge() {
+            return {
+                pane: 'pane_NHDPlusV21_US_gage_0',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(6,193,0,1.0)',
+                //purple: fillColor: 'rgba(179,18,219,1.0)',
+                //orange: fillColor: 'rgba(231,113,72,1.0)',
+                interactive: true,
+            }
+        }
+
+        //red
+        function inactiveGauge() {
+            return {
+                pane: 'pane_NHDPlusV21_US_gage_0',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(210,11,11,1.0)',
+                interactive: true,
+            }
+        }
+
+        MAP.createPane('pane_NHDPlusV21_US_gage_0');
+        MAP.getPane('pane_NHDPlusV21_US_gage_0').style.zIndex = 400;
+        MAP.getPane('pane_NHDPlusV21_US_gage_0').style['mix-blend-mode'] = 'normal';
+        var GAUGE_LAYER = new L.geoJson(geoUSData, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'geoUSData',
+            layerName: 'GAUGE_LAYER',
+            pane: 'pane_NHDPlusV21_US_gage_0',
+            onEachFeature: pop_NHDPlusV21_US_gage_0,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                if(parseInt(feature.properties['Active']) == 1){
+                    return L.circleMarker(latlng, activeGauge(feature));
+                }
+                else{
+                    return L.circleMarker(latlng, inactiveGauge(feature));
+                }
+                
+            },
+        });
+        var markersBar = L.markerClusterGroup();
+        markersBar.addLayer(GAUGE_LAYER);
+        /*
+        markersBar.setStyle([
+            {
+                url: 'markers/m1.png',
+                height: 50,
+                width: 50
+            },
+            {
+                url: 'markers/m2.png',
+                height: 50,
+                width: 50
+            },
+            {
+                url: 'markers/m3.png',
+                height: 50,
+                width: 50
+            },
+            {
+                url: 'markers/m4.png',
+                height: 50,
+                width: 50
+            },
+            {
+                url: 'markers/m5.png',
+                height: 50,
+                width: 50
+            }
+            ]);
+            */
+        markersBar.addTo(MAP);
+        //const GAUGE_LAYER = L.geoJSON(shapeUSData).addTo(MAP);
+        // const GAUGE_IMAGE = L.imageOverlay('gaugeimage.png', [[-0.984152017, 85.291363022],
+        //     [-199.327951806, -20.167508032]]).addTo(MAP);
+        // var accesstoken = "";
+        // const GAUGE_LAYER = L.esri
+        //     .featureLayer({
+        //         url: GEO_TILE_SET,
+        //         //onEachFeature: CatchonEachFeature
+        //     });
+        // GAUGE_LAYER.setStyle({
+        //     color: "purple",
+        // }).addTo(MAP);
+        // const arrayOfMarkers = results.value.map(element => 
+        //     L.marker([element.Latitude, element.Longitude]).bindPopup(/* etc. */)
+        // );
+        // const mcg = L.markerClusterGroup();
+        // mcg.addLayers(arrayOfMarkers);
+        // mcg.addTo(map);
             //onEachFeature: GaugeonEachFeature
         // GAUGE_LAYER.setStyle({
         //     color: "purple",
@@ -239,7 +487,12 @@
 
         function CatchonEachFeature(feature, layer) {
             layer.on('click', function (e) {
-                if (layer.feature.properties.FEATUREID != null) sendMessageToDotnet(layer.feature.properties.FEATUREID.toString());
+                try{
+                    if (layer.feature.properties.FEATUREID != null) sendMessageToDotnet(layer.feature.properties.FEATUREID.toString());
+                }
+                catch{
+
+                }
                 //sendMessageToDotnet(layer.feature.properties.toString());
 
                 //ChangeFeatureColor(feature, layer);
@@ -334,6 +587,7 @@
             "Catchments": CATCHMENTS_LAYER,
             "Flow Lines": FLOWLINES_LAYER,
             "NWS Lake/Res": WB_LAYER,
+            "Gauges": markersBar,
         };
         const LAYER_OPTIONS = L.control.layers(Base_Maps, OVERLAY_MAPS);
         LAYER_OPTIONS.addTo(MAP);
@@ -509,7 +763,7 @@
 
         function makeSelectedLayer(comid) {
             //Ensures it is not adding multiple of the same layer or overlay. 
-            if (SELECTED_LAYER) {
+            if (SELECTED_LAYER) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
                 MAP.removeLayer(SELECTED_LAYER);
                 LAYER_OPTIONS.removeLayer(SELECTED_LAYER);
             }

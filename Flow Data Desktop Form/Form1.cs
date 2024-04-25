@@ -82,11 +82,26 @@ namespace Flow_Data_Desktop_Form
         private void webView21_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             //For retrieving comid when map is clicked
-            textBox1.Text = e.TryGetWebMessageAsString();
+            if (tabControl1.SelectedTab == tabControl1.TabPages["tabPage1"])//your specific tabname
+            {
+                textBox1.Text = e.TryGetWebMessageAsString();
+            }
+            else
+            {
+                textBox2.Text = e.TryGetWebMessageAsString();
+            }
+            
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
+
+            //check comid before python
+            //show prints outside cmd prompt
+            //make headless cmd promopt
+            //identify prints(comid, streamflow, velocity) in output log
+            //try using shape file leaflet
+
             //Create identifiers for input objects from user
             var dateOne = dateTimePicker1.Value;
             var dateTwo = dateTimePicker2.Value;
@@ -236,9 +251,6 @@ namespace Flow_Data_Desktop_Form
         // To be used once the Gage Data tab is ready. For now, the tab has no functionality. 
         private void button2_Click(object sender, EventArgs e)
         {
-            string url = "";
-
-
             var dateOne = dateTimePicker4.Value;
             var dateTwo = dateTimePicker3.Value;
             string sDate = dateOne.ToString("yyyy-MM-dd");
@@ -246,12 +258,13 @@ namespace Flow_Data_Desktop_Form
             string gageids = textBox2.Text;
 
             //string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\testbuild.exe");
+            var erroMsg = "";
+            var gaugeData = GetGaugeData(out erroMsg ,gageids, sDate, eDate);
 
-            var gaugeData = GetGaugeData();
-
+            /*
             List<string> fileList = new List<string>();
             List<string[]> dateList = new List<string[]>();
-
+            
             var diff = dateTwo - dateOne;
             double days = diff.TotalDays;
             //bool firstRun = true;
@@ -290,6 +303,7 @@ namespace Flow_Data_Desktop_Form
                     dateList.Add(dates);
                 }
             }
+            */
 
             // Process Handling
             /*
@@ -321,7 +335,7 @@ namespace Flow_Data_Desktop_Form
                }
            }
            */
-
+            /*
             string[] data = { };
             foreach (string file in fileList)
             {
@@ -331,18 +345,18 @@ namespace Flow_Data_Desktop_Form
                 tempList.AddRange(tempData);
                 data = tempList.ToArray();
             }
+            */
+            //DateTime cTime = DateTime.Now;
+            //string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
 
-            DateTime cTime = DateTime.Now;
-            string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
-
-            string fileName = "(" + gageids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
+            //string fileName = "(" + gageids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
 
             //StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
 
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\Gage Data Requests\" + fileName + ".txt")))
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\Gage Data Requests\GaugeTestOutput.txt")))
             {
                 outputFile.WriteLine("[" + gageids + "]");
-                foreach (string line in data)
+                foreach (string line in gaugeData)
                 {
                     outputFile.WriteLine(line);
                 }
@@ -383,6 +397,12 @@ namespace Flow_Data_Desktop_Form
 
         private static string ConstructLookupURL(int gageID)
         {
+            //https://nwis.waterdata.usgs.gov/nwis/uv?
+            //search_site_no=02217770
+            //&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&
+            //begin_date=2023-01-01&
+            //end_date=2024-01-01&
+            //format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection
             StringBuilder sb = new StringBuilder();
             sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
             sb.Append(@"search_site_no=" + gageID.ToString() + "&");
@@ -403,6 +423,7 @@ namespace Flow_Data_Desktop_Form
             sb.Append(@"date_format=YYYY-MM-DD&");
             sb.Append(@"rdb_compression=file&");
             sb.Append(@"list_of_search_criteria=lat_long_bounding_box%2Crealtime_parameter_selection");
+            //https:/ /waterdata.usgs.gov/nwis/uv?search_site_no=02217770&&search_site_no_match_type=anywhere&group_key=NONE&format=sitefile_output&sitefile_output_format=rdb&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&range_selection=days&period=7&begin_date=2020-12-09&end_date=2020-12-16&date_format=YYYY-MM-DD&rdb_compression=file&list_of_search_criteria=lat_long_bounding_box%2Crealtime_parameter_selection
 
             return sb.ToString();
         }
@@ -462,6 +483,9 @@ namespace Flow_Data_Desktop_Form
             //}
             //string stationID = cInput.Geometry.GeometryMetadata["gaugestation"];
 
+            /*
+            //https://waterdata.usgs.gov/nwis/uv?search_site_no=02217770&&search_site_no_match_type=anywhere&group_key=NONE&index_pmcode_00060=1&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&range_selection=date_range&begin_date=2020-12-09&end_date=2020-12-16&format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection
+
             StringBuilder sb = new StringBuilder();
             sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
             sb.Append(@"search_site_no=" + stationID + "&");
@@ -480,6 +504,22 @@ namespace Flow_Data_Desktop_Form
             sb.Append(@"date_format=YYYY-MM-DD&");
             sb.Append(@"rdb_compression=value&");
             sb.Append(@"list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
+            */
+
+            //https://nwis.waterdata.usgs.gov/nwis/uv?
+            //search_site_no=02217770
+            //&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&
+            //begin_date=2023-01-01&
+            //end_date=2024-01-01&
+            //format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
+            sb.Append(@"search_site_no=" + stationID + "&");
+            sb.Append(@"&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&");
+            sb.Append(@"begin_date=" + startDate + "&");
+            sb.Append(@"end_date=" + endDate + "&");
+            sb.Append(@"format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
 
             return sb.ToString();
         }
