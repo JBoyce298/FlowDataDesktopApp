@@ -1,3 +1,8 @@
+# File primarily used for build testing
+# Command to build into .exe: pyinstaller --onefile testbuild.py
+# Attempted to use ironpython with C# to pull this file and run it directly without building it into a .exe separately
+# May be possible, but ran into issues with s3fs and zarr being difficult or perhaps incompatible with ironpython
+
 # import time
 # import datetime
 # from datetime import timezone

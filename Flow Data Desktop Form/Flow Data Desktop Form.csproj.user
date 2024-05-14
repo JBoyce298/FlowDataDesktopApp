@@ -6,9 +6,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Update="html\helloWorld.html">
-      <SubType>Code</SubType>
-    </None>
     <None Update="html\main.css">
       <SubType>Code</SubType>
     </None>

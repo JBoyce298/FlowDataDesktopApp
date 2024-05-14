@@ -31,15 +31,19 @@
 
 <body>
     <div id="search_bar">
-        <!--Potential search for COMID button before actually pulling data. Gives CORS privelege error currently-->
-            <input id="comidBox" type="text" placeholder="COMID" style="width: 70px">
-            <button id="comidButton" type="submit" onclick="comidClick()">COMID Search</button>
+        <!--Button to search for COMID or GaugeID before actually pulling data-->
+            <input id="searchBox" type="text" placeholder="COMID" style="width: 70px">
+            <button id="searchButton" type="submit" onclick="comidClick()">COMID Search</button>
+
+            <!--
+            <input id="gaugeBox" type="text" placeholder="Gauge" style="width: 70px">
+            <button id="gaugeButton" type="submit" onclick="gaugeClick()">Gauge Search</button>
+            -->
         
             <input id="latBox" type="text" placeholder="Latitude" style="width: 70px">
             <input id="lonBox" type="text" placeholder="Longitude" style="width: 70px">
             <button id="coordsButton" type="submit" onclick="coordsClick()">Coords Search</button>
     </div>
-    <!--<br>-->
     <div id="map_container">
         <div id="map"></div>
     </div>
@@ -49,18 +53,12 @@
     <script src="./gage_geo.js"></script>
     <script src="./gage_shape.js"></script>
     <script src="./newergeo.js"></script>
-    <script src="./Autolinker.min.js"></script>
+    <script src="./markers/Autolinker.min.js"></script>
     <link rel="stylesheet" href="markers\MarkerCluster.css"></script>
     <link rel="stylesheet" href="markers\MarkerCluster.Default.css"></script>
     <script src="markers\leaflet.markercluster-src.js"></script>
     <script src="markers\MarkerCluster.js"></script>
     <script>
-        //import features from './NHDPlusV21_US_gage.json' assert {type: 'json'};
-
-        //console.log(features);
-
-        //let gaugeJson = ;
-
         var allShapes = null;
         var geoLayer;
         let SELECTED_LAYER = null;
@@ -119,15 +117,11 @@
             centerBox.setContent(LatLngToArrayString(MAP.getCenter()));
         });
 
+        //Creates different map background types for user preference
         const LIGHT_GRAY = L.tileLayer("https://server.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
             attribution:
                 'Sources: Esri, HERE, Garmin, (c) OpenStreetMap contributors, and the GIS user community',
         });
-
-        const STREETVIEW = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(MAP);
-
         const NAT_GEO = L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}",
             {
@@ -135,7 +129,6 @@
                     "Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC",
             }
         );
-
         const SATELLITE = L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
@@ -143,7 +136,11 @@
                     "Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
             }
         );
+        const STREETVIEW = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(MAP);
 
+        //Adds map backgrounds
         const Base_Maps = {
             "No Map": L.tileLayer(''),
             "Streetview": STREETVIEW,
@@ -151,11 +148,8 @@
             "ESRI Natl. Geo.": NAT_GEO,
             "ESRI Imagery": SATELLITE,
         };
-        //            const BASE_OPTIONS = L.control.layers()
-        //((null, Base_Maps);
-        //BASE_OPTIONS.addTo(MAP);
 
-
+        //Creates a waterbodies layer for the map
         const WB_LAYER = L.esri
             .featureLayer({
                 url: URL_NWS_WB,
@@ -163,6 +157,7 @@
             }
             );
 
+        //Sets the catchment layer for the map
         const CATCHMENTS_LAYER = L.esri
             .featureLayer({
                 url: URL_NP21_CATCHMENTS,
@@ -174,47 +169,9 @@
             weight: 1,
         });//.addTo(MAP);
 
-        //let pathName = window.location.pathname;
-
-        // var req = new XMLHttpRequest();
-        // req.onload = function(){
-        //     testP = this.responseText;
-        // };
-        // req.open('GET', './NHDPlusV21_US_gage.geojson');
-        // req.send();
-
-        //const textGauge = fetch('./NHDPlusV21_US_gage.json');
-        //console.log(gaugeJson);
-
-
-
-        // let dirName = document.getElementById("directoryName");
-        // dirName.innerHTML = testP;
-        //var gaugeGeo = FileReader.;
-        //var orangeIcon =  new LeafIcon({iconUrl: 'NHDPlusV21_US_gage_0.png'});
-        // $.getJSON(shapeUSData, function(data) {
-        //    var my_json = L.geoJson(data, {
-        //     pointToLayer: function(feature, latlng) {
-        //         var smallIcon = L.Icon({
-        //             options: {
-        //                 iconSize: [27, 27],
-        //                 iconAnchor: [13, 27],
-        //                 popupAnchor:  [1, -24],
-        //                 iconUrl: 'NHDPlusV21_US_gage_0.png'
-        //             }
-        //         });
-        //         return L.marker(latlng, {icon: smallIcon});
-        //     },
-        //    onEachFeature: function (feature, layer) {
-        //            layer.bindPopup(feature.properties.ATT1 + '<br />'
-        //                                          + feature.properties.ATT2);
-        //    }
-        //  });
-        // my_json.addTo(markers.addTo(map));
-        // TOC.addOverlay(my_json, "My layer name in TOC");
-        // map.removeLayer(my_json); 
-        // });
+        //Creates an autolinker and new document elements to create panes of metadata for each gauge id within geoUSData
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        
         function removeEmptyRowsFromPopupContent(content, feature) {
          var tempDiv = document.createElement('div');
          tempDiv.innerHTML = content;
@@ -237,9 +194,12 @@
             popup.update();
           }
         }, true);
+
         var bounds_group = new L.featureGroup([]);
+
+        //Contains the metadata information the user will see within a pane when they click on a gauge icon
         function pop_NHDPlusV21_US_gage_0(feature, layer) {
-            /*
+            /* Optional metadata that is perhaps not as important to user. Disabled for now
                     <tr>\
                         <td colspan="2">' + (feature.properties['REACHCODE'] !== null ? autolinker.link("REACHCODE: " + feature.properties['REACHCODE'].toLocaleString()) : '') + '</td>\
                     </tr>\
@@ -308,8 +268,24 @@
             var content = popup.getContent();
             var updatedContent = removeEmptyRowsFromPopupContent(content, feature);
             popup.setContent(updatedContent);
+
+            layer.on('click', function (e) {
+                try{
+                    if (feature.properties['SOURCE_FEA'] != null) sendMessageToDotnet("gauge|" + feature.properties['SOURCE_FEA']);
+                }
+                catch{
+
+                }
+                //sendMessageToDotnet(layer.feature.properties.toString());
+
+                //ChangeFeatureColor(feature, layer);
+                // makeSelectedLayer(layer.feature.properties.FEATUREID);
+                // let docComId = document.getElementById("comid");
+                // docComId.setAttribute("value", layer.feature.properties.FEATUREID.toString());
+            });
         }
 
+        //Converts a unix timestamp into a datetime object
         function dateUNIXConvert(unixTime){
             var timeInt = parseInt(unixTime);
             let dateObj = new Date(timeInt * 1000);
@@ -317,7 +293,7 @@
             return utcString;
         }
 
-        //green
+        //green icon
         function activeGauge() {
             return {
                 pane: 'pane_NHDPlusV21_US_gage_0',
@@ -337,7 +313,7 @@
             }
         }
 
-        //red
+        //red icon
         function inactiveGauge() {
             return {
                 pane: 'pane_NHDPlusV21_US_gage_0',
@@ -355,6 +331,7 @@
             }
         }
 
+        //creates panes to contain metadata for all markers within geoUSData
         MAP.createPane('pane_NHDPlusV21_US_gage_0');
         MAP.getPane('pane_NHDPlusV21_US_gage_0').style.zIndex = 400;
         MAP.getPane('pane_NHDPlusV21_US_gage_0').style['mix-blend-mode'] = 'normal';
@@ -381,121 +358,18 @@
         });
         var markersBar = L.markerClusterGroup();
         markersBar.addLayer(GAUGE_LAYER);
-        /*
-        markersBar.setStyle([
-            {
-                url: 'markers/m1.png',
-                height: 50,
-                width: 50
-            },
-            {
-                url: 'markers/m2.png',
-                height: 50,
-                width: 50
-            },
-            {
-                url: 'markers/m3.png',
-                height: 50,
-                width: 50
-            },
-            {
-                url: 'markers/m4.png',
-                height: 50,
-                width: 50
-            },
-            {
-                url: 'markers/m5.png',
-                height: 50,
-                width: 50
-            }
-            ]);
-            */
         markersBar.addTo(MAP);
-        //const GAUGE_LAYER = L.geoJSON(shapeUSData).addTo(MAP);
-        // const GAUGE_IMAGE = L.imageOverlay('gaugeimage.png', [[-0.984152017, 85.291363022],
-        //     [-199.327951806, -20.167508032]]).addTo(MAP);
-        // var accesstoken = "";
-        // const GAUGE_LAYER = L.esri
-        //     .featureLayer({
-        //         url: GEO_TILE_SET,
-        //         //onEachFeature: CatchonEachFeature
-        //     });
-        // GAUGE_LAYER.setStyle({
-        //     color: "purple",
-        // }).addTo(MAP);
-        // const arrayOfMarkers = results.value.map(element => 
-        //     L.marker([element.Latitude, element.Longitude]).bindPopup(/* etc. */)
-        // );
-        // const mcg = L.markerClusterGroup();
-        // mcg.addLayers(arrayOfMarkers);
-        // mcg.addTo(map);
-            //onEachFeature: GaugeonEachFeature
-        // GAUGE_LAYER.setStyle({
-        //     color: "purple",
-        //     fillOpacity: 0,
-        //     weight: 1,
-        // }).addTo(MAP);
-        
-        // CONTAMINANT_LAYER = L.layerGroup();
-        // for (let element of geoJSONCatchList) {
-        //     //Creates a new feature using the JSON
-        //     let newFeature = L.geoJSON(element[1]).addTo(CONTAMINANT_LAYER);
 
-        //     newFeature.setStyle({
-        //         color: "black",
-        //         fillOpacity: 0.1,
-        //     });
-        // }
-        // for (let element of geoJSONFlowList) {
-        //     //Creates a new feature using the JSON
-        //     let newFeature = L.geoJSON(element[1]).addTo(CONTAMINANT_LAYER);
-        //     //Loops through times when catchments were first contaminated
-        //     const contaminateCatchment = timeWhenTrue.find((catchment) => {
-        //         return catchment[0] === element[0];
-        //     });
-        //     //Checks Com ID to ensure the correct geometry is changing color
-        //     if (contaminateCatchment && contaminateCatchment[1] <= smallDateStrings[dateSlider.value]) {
-        //         //If Catchment is contaminated at current time, it will appear red
-        //         newFeature.setStyle({
-        //             color: "red",
-        //         });
-        //     } else {
-        //         newFeature.setStyle({
-        //             color: "blue",
-        //         });
-        //     }
-        // }
-        // //Checks to see if the layer should be re-added to the map
-        // if (contaminateLayerOn) {
-        //     CONTAMINANT_LAYER.addTo(MAP);
-        // }
-
-        /*
-        const SELECTED_LAYER = L.esri
-            .featureLayer({
-                onEachFeature: CatchonEachFeature
-            });
-        SELECTED_LAYER.setStyle({
-            color: "black",
-            fillOpacity: 0,
-            weight: 1,
-        })
-        */
-        function GaugeonEachFeature(feature, layer) {
-            return null;
-        }
-
+        //Function that applies to every catchment with the layer. Used to set specific propeties to catchments only
         function CatchonEachFeature(feature, layer) {
             layer.on('click', function (e) {
                 try{
-                    if (layer.feature.properties.FEATUREID != null) sendMessageToDotnet(layer.feature.properties.FEATUREID.toString());
+                    if (layer.feature.properties.FEATUREID != null) sendMessageToDotnet("comid|" + layer.feature.properties.FEATUREID.toString());
                 }
                 catch{
 
                 }
-                //sendMessageToDotnet(layer.feature.properties.toString());
 
-                //ChangeFeatureColor(feature, layer);
                 makeSelectedLayer(layer.feature.properties.FEATUREID);
                 let docComId = document.getElementById("comid");
                 docComId.setAttribute("value", layer.feature.properties.FEATUREID.toString());
@@ -509,6 +383,7 @@
             
         };
 
+        //Function that applies to every waterbodies with the layer. Used to set specific propeties to certain waterbodies only
         function WBonEachFeature(feature, layer) {
             if (layer.feature.properties.GNIS_NAME != null) {
                 var str = layer.feature.properties.GNIS_NAME.toString();
@@ -516,6 +391,7 @@
             };
         };
 
+        //Function that applies to every flowlines with the layer. Used to set specific propeties to flowlines only
         function FLonEachFeature(feature, layer) {
             if ((feature.properties.FCODE == 56600) || (feature.properties.FLOWDIR == 0)) {
                 layer.setStyle({ opacity: 0.0 });
@@ -541,25 +417,7 @@
             });
         };
 
-        // build map layers
-        /*.on('click', function (e) {
-        // Check for selected
-            if (selected) {
-        // Reset selected to default style
-            e.target.resetStyle(selected)
-            }
-            // Assign new selected
-            selected = e.layer
-            // Bring selected to front
-            selected.bringToFront()
-            // Style selected
-            selected.setStyle({
-                'color': 'red'
-            })
-        }).addTo(map);*/
-
-
-
+        //Sets the boundaries layer for the map
         const BOUNDARIES_LAYER = L.esri
             .featureLayer({
                 url: URL_NP21_HUC8,
@@ -570,6 +428,7 @@
             weight: 1,
         });
 
+        //Sets the flowlines layer for the map
         const FLOWLINES_LAYER = L.esri
             .featureLayer({
                 url: URL_NP21_FLOWLINES,
@@ -581,7 +440,7 @@
             weight: 1,
         });
 
-
+        //The map overlay
         const OVERLAY_MAPS = {
             "HUC8 Boundaries": BOUNDARIES_LAYER,
             "Catchments": CATCHMENTS_LAYER,
@@ -592,7 +451,7 @@
         const LAYER_OPTIONS = L.control.layers(Base_Maps, OVERLAY_MAPS);
         LAYER_OPTIONS.addTo(MAP);
 
-        // app interaction
+        // Can send a message containing the coordniates where the user clicked on the map
         /*
         function handleMapClick(e) {
             const LAT_LNG = e.latlng;
@@ -606,6 +465,7 @@
         }
         MAP.on("click", handleMapClick);*/
 
+        //Concatenates 2 geojsons
         function concatGeoJSON(g1, g2) {
             return {
                 "type": "FeatureCollection",
@@ -621,12 +481,14 @@
             // sendMessageToDotnet(gstr);
         }
 
+        //Adds a waterbody geojson to the existing one allShapes through concatenation
         function AddWBGeoJSON(gstr) {
             wb = JSON.parse(gstr);
             if (allShapes == null) allShapes = wb
             else allShapes = concatGeoJSON(allShapes, wb);
         }
 
+        //Used to apply specific properties to every feature within a layer
         function onEachFeature(feature, layer) {
             layer.on('click', function (e) {
                 if (layer.feature.properties.COMID != null) sendMessageToDotnet(layer.feature.properties.COMID.toString());
@@ -644,6 +506,7 @@
             };
         }
 
+        //Renders a geoJson allShapes within the map and fits the bounds around it
         function renderGeoJSON() {
             if (allShapes != null) {
                 geoLayer = L.geoJSON(allShapes,
@@ -663,6 +526,7 @@
             }
         }
 
+        //Colors a specific COMID's geojson line to another color
         function ColorGeoJSON(COMID, linecolor) {
             geoLayer.eachLayer(function (layer) {
                 if (layer.feature.properties.COMID == COMID) {
@@ -671,6 +535,7 @@
             })
         }
 
+        //Used to remove a geojson from the map completely
         function eraseGeoJSON() {
             if (geoLayer != null) MAP.removeLayer(geoLayer);
             markers.clearLayers();
@@ -678,6 +543,7 @@
             geoLayer = null; // new L.geoJSON;
         }
 
+        //Green and red icons for markers
         var greenIcon = new L.Icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -695,6 +561,7 @@
             shadowSize: [25, 25]
         });
 
+        //Used to add specific markers to the map as either green or red
         function AddMarker(mcolor, long, lat, msg) {
             var marker;
             if (mcolor == "green") marker = L.marker([lat, long], { icon: greenIcon });
@@ -703,24 +570,10 @@
             markers.addLayer(marker);
         }
 
+        //Used to enable or disable markers
         function Bounds(showstr) {
             if (showstr == "True") MAP.addLayer(markers);
             else MAP.removeLayer(markers);
-        }
-
-        function Labels(boostr) {
-            var permanentlabels = false;
-            if (boostr == "True") permanentlabels = true;
-
-            geoLayer.eachLayer(function (layer) {
-                if (layer.feature.properties.COMID != null) {
-                    var str = '';
-                    if (layer.feature.properties.GNIS_NAME != null) str = ", " + layer.feature.properties.GNIS_NAME.toString();
-                    if (str == ' ') str = '';
-                    str = layer.feature.properties.COMID.toString() + str;
-                    if (str != ' ') { layer.unbindTooltip(); layer.bindTooltip(str, { permanent: permanentlabels, opacity: 1.0 }); };
-                }
-            });
         }
 
         // dotnet <=> js message handlers
@@ -730,23 +583,28 @@
         });
         */
 
+        //Event listener used to determine what function will be performed depending on message received from Dotnet code
         window.chrome.webview.addEventListener("message", (event) => {
             var messageArr = event.data.split("|");
-            if (messageArr[0] == "ADD") AddGeoJSON(messageArr[1]);
-            if (messageArr[0] == "ADDWB") AddWBGeoJSON(messageArr[1]);
-            if (messageArr[0] == "RENDER") renderGeoJSON();
-            if (messageArr[0] == "ERASE") eraseGeoJSON();
-            if (messageArr[0] == "COLOR") ColorGeoJSON(parseInt(messageArr[1]), messageArr[2]);
-            if (messageArr[0] == "MARKER") AddMarker(messageArr[1], messageArr[2], messageArr[3], messageArr[4]);
-            if (messageArr[0] == "BOUNDS") Bounds(messageArr[1]);
-            if (messageArr[0] == "LABELS") Labels(messageArr[1]);
+            //Currently unused event listener code blocks
+            // if (messageArr[0] == "ADD") AddGeoJSON(messageArr[1]);
+            // if (messageArr[0] == "ADDWB") AddWBGeoJSON(messageArr[1]);
+            // if (messageArr[0] == "RENDER") renderGeoJSON();
+            // if (messageArr[0] == "ERASE") eraseGeoJSON();
+            // if (messageArr[0] == "COLOR") ColorGeoJSON(parseInt(messageArr[1]), messageArr[2]);
+            // if (messageArr[0] == "MARKER") AddMarker(messageArr[1], messageArr[2], messageArr[3], messageArr[4]);
+            // if (messageArr[0] == "BOUNDS") Bounds(messageArr[1]);
             if (messageArr[0] == "FocusOn") focusOn(messageArr[1]);
+            if (messageArr[0] == "FocusOnGauge") focusOnGauge(messageArr[1]);
+            if (messageArr[0] == "SwitchSearch") switchSearch(messageArr[1]);
+            //if (messageArr[0] == "CheckGauge") 
 
             //                console.log(`message from dotnet: ${event.data}`);
             //                this.document.getElementById("message-bar").innerHTML =
             //                    event.data;
         });
 
+        //Sends a message to the Dotnet side of code
         function sendMessageToDotnet(message) {
             window.chrome.webview.postMessage(message);
             console.log(message);
@@ -754,13 +612,41 @@
             //alert(message);
         }
         
+        //Focuses map on desired comid
+        //Sends alert to webivew if there is no comid
         function focusOn(comval) {
-            let comid = parseInt(comval);
-            makeSelectedLayer(comid);
-            let coords = catchRequest(comid);
-            MAP.setView([coords[1], coords[0]], 12);
+            try{
+                let comid = parseInt(comval);
+                makeSelectedLayer(comid);
+                let coords = catchRequest(comid)[1];
+                MAP.setView([coords[1], coords[0]], 12);
+            }
+            catch(err){
+                console.log(err);
+                alert("COMID does not exist or was entered incorrectly");
+            }
         }
 
+        //Focuses map on desired gauge while also checking to see if gauge exists.
+        //Sends alert to webview if gauge does not exist
+        function focusOnGauge(gaugeID){
+            try{
+                for(let item of geoUSData.features){
+                    if(parseInt(gaugeID) == parseInt(item.properties.SOURCE_FEA)){
+                        let coords = item.geometry.coordinates;
+                        MAP.setView([coords[1], coords[0]], 13);
+                        break;
+                    }
+                }
+            }
+            catch(err){
+                console.log(err);
+                sendMessageToDotnet("noGauge|" + gaugeID);
+                alert("Gauge does not exist or was entered incorrectly");
+            }
+        }
+
+        //Turns a comid clicked by the user into a "selected" comid by making a new layer that contains the original comid's metadata, but is colored black instead
         function makeSelectedLayer(comid) {
             //Ensures it is not adding multiple of the same layer or overlay. 
             if (SELECTED_LAYER) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
@@ -769,8 +655,31 @@
             }
             
             //Pull catchment geometry data from watersgeo
-            let coords = [];
-            let geoCoordsList = [];
+            let comData = catchRequest(comid);
+            
+            SELECTED_LAYER = L.layerGroup();
+            for (let element of comData[0]) {
+                //Creates a new feature using the JSON
+                let newFeature = L.geoJSON(element[1])
+                    .bindTooltip(function (layer){
+                        return layer.feature.properties.FEATUREID.toString();
+                    }, { opacity: 1.0 }
+                    ).addTo(SELECTED_LAYER);
+
+                newFeature.setStyle({
+                    color: "black",
+                    fillOpacity: 0.1,
+                });
+            }
+
+            SELECTED_LAYER.addTo(MAP);
+
+            LAYER_OPTIONS.addOverlay(SELECTED_LAYER, "Selected Catchments");
+        }
+
+        //Used to pull catchment data such as coordinates and geometry from watersgeo
+        function catchRequest(comid){
+            let coords = [0,0];
             let geoJSONCatchList = [];
 
             let catchment_url_base =
@@ -798,68 +707,20 @@
                 geoJSONCatchList.push([comid, data]);
             },
             });
-            geoCoordsList.push([comid, coords]);
-
-            //alert(coords);
             
-            SELECTED_LAYER = L.layerGroup();
-            for (let element of geoJSONCatchList) {
-                //Creates a new feature using the JSON
-                let newFeature = L.geoJSON(element[1])
-                    .bindTooltip(function (layer){
-                        return layer.feature.properties.FEATUREID.toString();
-                    }, { opacity: 1.0 }
-                    ).addTo(SELECTED_LAYER);
-
-                newFeature.setStyle({
-                    color: "black",
-                    fillOpacity: 0.1,
-                });
-            }
-
-            SELECTED_LAYER.addTo(MAP);
-
-            LAYER_OPTIONS.addOverlay(SELECTED_LAYER, "Selected Catchments");
+            let val = [geoJSONCatchList, coords];
+            return val;
         }
 
-        function catchRequest(comid){
-            let coords = [0,0];
-
-            let catchment_url_base =
-            "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/Catchments_NP21_Simplified/MapServer/0/query?where=FEATUREID%3D";
-            let catchment_url_extension =
-            "&text=&objectIds=&time=&timeRelation=esriTimeRelationOverlaps&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&sqlFormat=none&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson";
-            
-            let catchment_query_url = catchment_url_base + comid + catchment_url_extension;
-
-            $.ajax({
-            async: false,
-            type: "GET",
-            url: catchment_query_url,
-            success: function (data, textStatus, jqXHR) {
-                //console.log(data);
-
-                if (Object.entries(data)[1][1][0].geometry.type === "MultiPolygon") {
-                    let firstEntries = Object.entries(data)[1][1][0].geometry.coordinates[0][0][0];
-                    coords = firstEntries;
-                } else {
-                    let firstEntries = Object.entries(data)[1][1][0].geometry.coordinates[0][0];
-                    coords = firstEntries;
-                }
-
-            },
-            });
-
-            return coords;
-        }
-
+        //Retrieves coordinates for comid and focuses map on it
+        //Sends alert to webview if comid does not exist
         function comidClick(){
             //console.log("clicked");
             try {
-                let comval = document.getElementById("comidBox").value;
+                let comval = document.getElementById("searchBox").value;
                 let comid = parseInt(comval);
 
-                let coords = catchRequest(comid);
+                let coords = catchRequest(comid)[1];
                 
                 //console.log(coords);
                 //alert(coords);
@@ -867,116 +728,42 @@
             }
             catch(err) {
                 console.log(err);
-                alert("COMID does not exist or was entered incorrectly")
+                alert("COMID does not exist or was entered incorrectly");
             }
         }
         
+        //Used to move map to specific coordinates in order to make navigation easier
         function coordsClick(){
             let lat = document.getElementById("latBox");
             let lon = document.getElementById("lonBox");
             MAP.setView([lat.value, lon.value], 12);
         }
-        /*
-        const DEFAULT_LAT = 49.5;
-        const DEFAULT_LNG = -125.02;
-        const DEFAULT_ZOOM = 13;
 
-        // catchments
-        const URL_NP21_CATCHMENTS =
-            "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/Catchments_NP21_Simplified/MapServer/0";
-        // WBD - HUC_8
-        const URL_NP21_HUC8 = "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/WBD_NP21_Simplified/MapServer/2";
-        // flowlines
-        const URL_NP21_FLOWLINES =
-            "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21/MapServer/0";
+        //Used to search for and focus on a specific gauge
+        function gaugeClick(){
+            let gaugeval = document.getElementById("searchBox").value;
+            focusOnGauge(gaugeval);
+        }
 
-        // build base map layer
-        MAP = L.map("map").setView([DEFAULT_LAT, DEFAULT_LNG], DEFAULT_ZOOM);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(MAP);
-
-        // build map layers
-        const CATCHMENTS_LAYER = L.esri
-            .featureLayer({
-                url: URL_NP21_CATCHMENTS,
-            })
-            .addTo(MAP);
-        CATCHMENTS_LAYER.setStyle({
-            color: "orange",
-            fillOpacity: 0,
-        });
-
-        const BOUNDARIES_LAYER = L.esri
-            .featureLayer({
-                url: URL_NP21_HUC8,
-            })
-            .addTo(MAP);
-        BOUNDARIES_LAYER.setStyle({
-            color: "purple",
-            fillOpacity: 0,
-        });
-
-        const FLOWLINES_LAYER = L.esri
-            .featureLayer({
-                url: URL_NP21_FLOWLINES,
-            })
-            .addTo(MAP);
-
-        const OVERLAY_MAPS = {
-            "HUC8 Boundaries": BOUNDARIES_LAYER,
-            Catchments: CATCHMENTS_LAYER,
-            "Flow Lines": FLOWLINES_LAYER,
-        };
-        LAYER_OPTIONS = L.control.layers(null, OVERLAY_MAPS);
-        LAYER_OPTIONS.addTo(MAP);
-
-        //creates a legend for the map
-        let LEGEND = L.control({ position: "bottomleft" });
-
-        LEGEND.onAdd = function (MAP) {
-            var div = L.DomUtil.create("div", "legend");
-            div.setAttribute(
-                "style",
-                "background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; float: left; text-align: center; padding: 6px 8px;"
-            );
-            div.innerHTML += "<h4>Legend</h4>";
-            div.innerHTML += "<br>";
-            div.innerHTML += '<i style="background: #000000"></i><span>Selected Catchments</span><br>';
-            div.innerHTML += '<i style="background: #ffa500"></i><span>Catchments</span><br>';
-            div.innerHTML += '<i style="background: #3388ff"></i><span>Flow Lines</span><br>';
-            div.innerHTML += '<i style="background: #800080"></i><span>HUC8</span><br>';
-
-            return div;
-        };
-
-        LEGEND.addTo(MAP);
-        */
-        /*Click Interactions, currently unused
-             // app interaction
-             function handleMapClick(e) {
-                const LAT_LNG = e.latlng;
-                sendMessageToDotnet(
-                    `Message from map click lat: ${LAT_LNG.lat}, lng: ${LAT_LNG.lng}`
-                );
+        //Used to change the searchbox attributes for use with either comid or gauge depending on the tab the user has open in forms
+        function switchSearch(searchType){
+            if(searchType == "comid"){
+                let textBox = document.getElementById("searchBox");
+                textBox.value = "";
+                textBox.setAttribute("placeholder", "COMID");
+                let searchButton = document.getElementById("searchButton");
+                searchButton.innerHTML = "COMID Search";
+                searchButton.setAttribute("onclick", "comidClick()");
             }
-            MAP.on("click", handleMapClick);
-        
-            // dotnet <=> js message handlers
-            // receive message dotnet
-            window.chrome.webview.addEventListener("message", (event) => {
-                console.log(`"message" event received from dotnet: `, event);
-                const message = event.data;
-                if (typeof message === "string")
-                    this.document.getElementById("message-bar").innerHTML =
-                        event.data;
-            });
-        
-            // send message to dotnet
-            function sendMessageToDotnet(message) {
-                window.chrome.webview.postMessage(message);
+            else{
+                let textBox = document.getElementById("searchBox");
+                textBox.value = "";
+                textBox.setAttribute("placeholder", "GaugeID");
+                let searchButton = document.getElementById("searchButton");
+                searchButton.innerHTML = "Gauge Search";
+                searchButton.setAttribute("onclick", "gaugeClick()");
             }
-        */
+        }
     </script>
 </body>
 </html>

@@ -35,11 +35,8 @@ namespace Flow_Data_Desktop_Form
             webviewready = InitializeAsync();
 
             webView21.Source = new Uri(Path.Combine(Environment.CurrentDirectory, @"..\..\..\html\leafletMap.html"));
-            //webView21.Source = new Uri("C:\\Users\\jboyce\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\html\\leafletMap.html");
+            //webView21.Source = new Uri("C:\\Users\\user\\source\\repos\\Flow Data Desktop Form\\Flow Data Desktop Form\\html\\leafletMap.html");
             webView21.Visible = true;
-            //label1.Text = Environment.CurrentDirectory + "";
-            //GdalBase.ConfigureAll();
-            //GdalBase.ConfigureGdalDrivers();
         }
 
         private Task InitializeAsync()
@@ -79,28 +76,56 @@ namespace Flow_Data_Desktop_Form
             await webView21.ExecuteScriptAsync("window.chrome.webview.postMessage(document.getElementById('comid').value)");
         }
 
+        //This block retrieves a message from the JavaScript to 
         private void webView21_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
-            //For retrieving comid when map is clicked
-            if (tabControl1.SelectedTab == tabControl1.TabPages["tabPage1"])//your specific tabname
+            //For retrieving message from JS when map is clicked
+            string[] message = e.TryGetWebMessageAsString().Split('|');
+
+
+            //Automatically switches tabs to object user clicked and enters id for object into search field
+            if (message[0] == "comid")//specific tab name
             {
-                textBox1.Text = e.TryGetWebMessageAsString();
+                tabControl1.SelectedTab = tabPage1;
+                textBox1.Text = message[1];
             }
-            else
+            if (message[0] == "gauge")
             {
-                textBox2.Text = e.TryGetWebMessageAsString();
+                tabControl1.SelectedTab = tabPage2;
+                textBox2.Text = message[1];
             }
             
         }
 
+        //This block sends a message to the JavaScript that changes the webpage to better reflect the tab the user is on
+        private async void tabPage_Click(object sender, EventArgs e)
+        {
+            //Changes attributes of search functionalities within JS code to simplify search for the user
+            if (tabControl1.SelectedTab == tabPage2)
+            {
+                string message = "SwitchSearch|gauge";
+                webView21.CoreWebView2.PostWebMessageAsString(message);
+                //Debug.WriteLine("Page 2");
+            }
+            else
+            {
+                string message = "SwitchSearch|comid";
+                webView21.CoreWebView2.PostWebMessageAsString(message);
+                //Debug.WriteLine("Page 1");
+            }
+        }
+
+        //Used for the COMID tab and its functionalities
         private async void button1_Click(object sender, EventArgs e)
         {
-
-            //check comid before python
-            //show prints outside cmd prompt
-            //make headless cmd promopt
-            //identify prints(comid, streamflow, velocity) in output log
-            //try using shape file leaflet
+            /* TODO:
+             * Properly check comid before python. Currently implemented in JS at lines 617 and 717
+             * Perhaps attempt use of IronPython (more info in testbuild.py)
+             * Display output outside command prompt
+             * Make headless command promopt
+             * Format file better, identify prints(comid, streamflow, velocity) in output log
+             * Finish implementing functionality for multiple comids
+             */
 
             //Create identifiers for input objects from user
             var dateOne = dateTimePicker1.Value;
@@ -189,7 +214,7 @@ namespace Flow_Data_Desktop_Form
 
             //Conglomerates data from all output files into one list that contains all the data retrieved
 
-            //string[] data = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
+            //File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
             string[] data = { };
             foreach (string file in fileList)
             {
@@ -203,10 +228,12 @@ namespace Flow_Data_Desktop_Form
             //string[] data = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\output.txt"));
             //Debug.WriteLine(data);
 
+            //Sets name of conglomerated output file
             DateTime cTime = DateTime.Now;
             string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
 
             string fileName = "(" + comids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
+            //string filename = "COMID: " + comids + " [" + currentTime + "]";
 
             //Writes collective data into a file within the logs
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\ComID Data Requests\" + fileName + ".txt")))
@@ -248,153 +275,80 @@ namespace Flow_Data_Desktop_Form
             dataGridView1.DataSource = dt;
         }
 
-        // To be used once the Gage Data tab is ready. For now, the tab has no functionality. 
+
+
+        // To be used once the Gauge tab is its functionalities. Some are still missing
         private void button2_Click(object sender, EventArgs e)
         {
+            /* TODO:
+             * Check gauge existence before lookup. Currently implemented in JS at line 625
+             * Make gauge output on DataGridView like with comid tab
+             * Ensure program can pull data from both inactive(before 1950) and active(after 1950) gauges
+             * Format output file correctly, and determine why data is not downloading
+             */
+            /*
+             * Manual esting link for inactive gauges https://nwis.waterdata.usgs.gov/nwis/dv?site_no=02217900. 
+             * Change out number for inactive gauge being tested and set ouput format to Table or Tab-separated
+             */
+            /* Manual testing link for active gauges https://nwis.waterdata.usgs.gov/nwis/uv?search_criteria=search_site_no&submitted_form=introduction. 
+             * Enter site number, select data you want to retrieve (streamflow and veloctiy needed for gauge), select date range at bottom, choose either table of data or tab-separated under "output options"
+             */
+
+            //Creates identifiers for objects from user
             var dateOne = dateTimePicker4.Value;
             var dateTwo = dateTimePicker3.Value;
             string sDate = dateOne.ToString("yyyy-MM-dd");
             string eDate = dateTwo.ToString("yyyy-MM-dd");
-            string gageids = textBox2.Text;
+            string gageid = textBox2.Text;
 
             //string path = Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\testbuild.exe");
             var erroMsg = "";
-            var gaugeData = GetGaugeData(out erroMsg ,gageids, sDate, eDate);
+            //Focuses on checks gauge here. Need better method, no way for code to wait for response from JS on whether gauge exists or not.
+            webView21.CoreWebView2.PostWebMessageAsString("FocusOnGauge|" + gageid);
 
-            /*
-            List<string> fileList = new List<string>();
-            List<string[]> dateList = new List<string[]>();
-            
-            var diff = dateTwo - dateOne;
-            double days = diff.TotalDays;
-            //bool firstRun = true;
-            double daysLeft = days;
-            var tempStartDate = dateTimePicker4.Value;
-            var endDate = dateTimePicker3.Value;
-            for (int i = 0; i < days; i += 1461)
-            {
-                string newFile = "output" + i / 1461 + ".txt";
-                fileList.Add(newFile);
+            //bool gaugeCheck = false;
 
-                using (FileStream fs = File.Create(Path.Combine(Environment.CurrentDirectory, newFile))) ;
+            //if (gaugeCheck)
+            //{
 
-                if (daysLeft > 1461)
-                {
-                    var newEnd = endDate;
-                    if (tempStartDate == dateOne)
-                    {
-                        newEnd = tempStartDate.AddDays(1461);
-                        //firstRun = false;
-                    }
-                    else
-                    {
-                        newEnd = tempStartDate.AddDays(1460);
-                    }
-                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), newEnd.ToString("yyyy-MM-dd") };
-                    dateList.Add(dates);
-
-                    tempStartDate = newEnd.AddDays(1);
-
-                    daysLeft -= 1461;
-                }
-                else
-                {
-                    string[] dates = { tempStartDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd") };
-                    dateList.Add(dates);
-                }
-            }
-            */
-
-            // Process Handling
-            /*
-           List<Process> procsList = new List<Process>();
-           int processNum = 0;
-           foreach (string file in fileList)
-           {
-               string paramsString = gageids + " " + dateList[processNum][0] + " " + dateList[processNum][1] + " " + file;
-               Process process = Process.Start(path, paramsString);
-               procsList.Add(process);
-               //procs[processNum] = Process.Start(path, paramsString);
-               processNum++;
-           }
+            //}
 
 
-           foreach (Process proc in procsList)
-           {
-               if (proc != null)
-               {
-                   try
-                   {
-                       Process.GetProcessById(proc.Id);
-                       proc.WaitForExit();
-                   }
-                   catch (ArgumentException)
-                   {
-                       //process not running anymore
-                   }
-               }
-           }
-           */
-            /*
-            string[] data = { };
-            foreach (string file in fileList)
-            {
-                string[] tempData = File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, file));
-                List<string> tempList = new List<string>();
-                tempList.AddRange(data);
-                tempList.AddRange(tempData);
-                data = tempList.ToArray();
-            }
-            */
-            //DateTime cTime = DateTime.Now;
-            //string currentTime = cTime.ToString("yyyy-MM-dd HH.mm.ss");
-
-            //string fileName = "(" + gageids + "_" + sDate + "_" + eDate + ") [" + currentTime + "]";
-
-            //StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\python\dist\" + fileName + ".txt"));
+            //Calls function to build url and retrieve gauge data
+            var gaugeData = GetGaugeData(out erroMsg, gageid, sDate, eDate);
 
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, @"..\..\..\logs\Gage Data Requests\GaugeTestOutput.txt")))
             {
-                outputFile.WriteLine("[" + gageids + "]");
+                outputFile.WriteLine("[" + gageid + "]");
                 foreach (string line in gaugeData)
                 {
                     outputFile.WriteLine(line);
                 }
             }
 
+
+            //Placeholder for planned DataGridView
             DataTable dt = new DataTable();
-            /*
-            dt.Columns.Add("date", typeof(string));
-            dt.Columns.Add("streamflow", typeof(double));
-            dt.Columns.Add("velocity", typeof(double));
-            for (int i = 0; i < data.Length; i++) //Here you will read each row from file and fill variables dateFromFile, flowFromFile, and velocityFromFile
-            {
-                //Debug.WriteLine(data[i]);
-                if (i != 0)
-                {
-                    DataRow dr = dt.NewRow();
-                    string[] val = data[i].Split("*");
-
-                    dr["date"] = val[2];
-
-                    double streamDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
-                    dr["streamflow"] = streamDouble;
-
-                    double velocityDouble = Double.Parse(val[0].Substring(1, val[0].Length - 2));
-                    dr["velocity"] = velocityDouble;
-
-                    dt.Rows.Add(dr);
-
-                }
-            }
-
-            //dataGridView1 is the C# DataGridView you have on your form
-            Debug.WriteLine(dt);
-            
-            dataGridView2.DataSource = dt;
-            */
         }
 
+        //Used for receiving message from JS to test if gauge is real, but JS sends message after C# has already moved on
+        private bool GaugeMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            //Attempt at receiving message from JS whether there is a gauge or not
+            string[] message = e.TryGetWebMessageAsString().Split('|');
+
+            if (message[0] == "noGauge")//your specific tabname
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+
+        }
+
+        //Function used to contrsut url that looks up gauge, but provides little other information. Potentially used for checking gauge existence
         private static string ConstructLookupURL(int gageID)
         {
             //https://nwis.waterdata.usgs.gov/nwis/uv?
@@ -428,6 +382,7 @@ namespace Flow_Data_Desktop_Form
             return sb.ToString();
         }
 
+        //function used to download gauge data
         private async Task<string> DownloadData(string url, int retries)
         {
             string data = "";
@@ -473,6 +428,7 @@ namespace Flow_Data_Desktop_Form
             return data;
         }
 
+        //Function that csontructs the url for downloading gauge data. Handles data both before and after 1950
         private static string ConstructURL(out string errorMsg, string stationID, string startDate, string endDate)
         {
             errorMsg = "";
@@ -483,29 +439,6 @@ namespace Flow_Data_Desktop_Form
             //}
             //string stationID = cInput.Geometry.GeometryMetadata["gaugestation"];
 
-            /*
-            //https://waterdata.usgs.gov/nwis/uv?search_site_no=02217770&&search_site_no_match_type=anywhere&group_key=NONE&index_pmcode_00060=1&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&range_selection=date_range&begin_date=2020-12-09&end_date=2020-12-16&format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
-            sb.Append(@"search_site_no=" + stationID + "&");
-            //sb.Append(@"search_site_no_match_type=exact&");
-            sb.Append(@"&search_site_no_match_type=anywhere&");
-            sb.Append(@"group_key=NONE&");
-            sb.Append(@"index_pmcode_00060=1&");
-            sb.Append(@"sitefile_output_format=html_table&");
-            sb.Append(@"column_name=agency_cd&");
-            sb.Append(@"column_name=site_no&");
-            sb.Append(@"column_name=station_nm&");
-            sb.Append(@"range_selection=date_range&");
-            sb.Append(@"begin_date=" + startDate + "&");
-            sb.Append(@"end_date=" + endDate + "&");
-            sb.Append(@"format=rdb&");
-            sb.Append(@"date_format=YYYY-MM-DD&");
-            sb.Append(@"rdb_compression=value&");
-            sb.Append(@"list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
-            */
-
             //https://nwis.waterdata.usgs.gov/nwis/uv?
             //search_site_no=02217770
             //&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&
@@ -513,17 +446,45 @@ namespace Flow_Data_Desktop_Form
             //end_date=2024-01-01&
             //format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
-            sb.Append(@"search_site_no=" + stationID + "&");
-            sb.Append(@"&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&");
-            sb.Append(@"begin_date=" + startDate + "&");
-            sb.Append(@"end_date=" + endDate + "&");
-            sb.Append(@"format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
+            //Checks the year the use is looking for.
+            //Need to implement method to retrieve gauge's earliest date in case user attempts to call date before gauge was installed
+            string sYear = startDate.Substring(0, 4);
+            Debug.WriteLine(sYear);
 
-            return sb.ToString();
+            if (Int32.Parse(sYear) >= 1950)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(@"https://waterdata.usgs.gov/nwis/uv?");
+                sb.Append(@"search_site_no=" + stationID + "&");
+                sb.Append(@"&search_site_no_match_type=exact&index_pmcode_00055=1&index_pmcode_00060=1&index_pmcode_00061=1&index_pmcode_00065=1&group_key=huc_cd&sitefile_output_format=html_table&column_name=agency_cd&column_name=site_no&column_name=station_nm&column_name=site_tp_cd&column_name=dec_lat_va&column_name=dec_long_va&column_name=coord_acy_cd&column_name=alt_va&column_name=tz_cd&column_name=rt_bol&column_name=peak_begin_date&column_name=peak_end_date&column_name=peak_count_nu&column_name=qw_begin_date&column_name=qw_end_date&column_name=qw_count_nu&range_selection=date_range&");
+                sb.Append(@"begin_date=" + startDate + "&");
+                sb.Append(@"end_date=" + endDate + "&");
+                sb.Append(@"format=rdb&date_format=YYYY-MM-DD&rdb_compression=value&list_of_search_criteria=search_site_no%2Crealtime_parameter_selection");
+
+                return sb.ToString();
+            }
+            else
+            {
+                string eYear = endDate.Substring(0, 4);
+
+                if (Int32.Parse(eYear) >= 1950)
+                {
+                    endDate = "1949-12-31";
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.Append(@"https://nwis.waterdata.usgs.gov/nwis/dv?cb_00060=on&format=rdb&");
+                sb.Append(@"search_site_no=" + stationID + "&");
+                sb.Append(@"legacy=&referred_module=sw&period=&");
+                sb.Append(@"begin_date=" + startDate + "&");
+                sb.Append(@"end_date=" + endDate);
+
+                return sb.ToString();
+            }
+            //https:/ /nwis.waterdata.usgs.gov/nwis/dv?cb_00060=on&format=rdb&site_no=02217900&legacy=&referred_module=sw&period=&begin_date=1930-04-02&end_date=1949-04-15
         }
 
+        //Function that gathers and returns the data
         public List<string> GetGaugeData(out string errorMsg, string stationID, string startDate, string endDate)
         {
             errorMsg = "";
@@ -534,6 +495,7 @@ namespace Flow_Data_Desktop_Form
 
             // Uses the constructed url to download time series data.
             string data = DownloadData(url, 0).Result;
+            Debug.WriteLine(data);
             if (errorMsg.Contains("ERROR") || data == null) { return null; }
 
             return new List<string>() { data, url };

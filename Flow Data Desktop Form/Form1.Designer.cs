@@ -36,9 +36,9 @@
             this.button1 = new System.Windows.Forms.Button();
             this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
             this.dateTimePicker2 = new System.Windows.Forms.DateTimePicker();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -49,9 +49,9 @@
             this.label5 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.webView21)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.SuspendLayout();
@@ -119,7 +119,7 @@
             this.button1.TabIndex = 9;
             this.button1.Text = "Get NWM Data";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.tabPage_Click);
             // 
             // dateTimePicker1
             // 
@@ -135,18 +135,6 @@
             this.dateTimePicker2.Size = new System.Drawing.Size(302, 31);
             this.dateTimePicker2.TabIndex = 11;
             // 
-            // dataGridView1
-            // 
-            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(0, 296);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.RowHeadersWidth = 62;
-            this.dataGridView1.RowTemplate.Height = 33;
-            this.dataGridView1.Size = new System.Drawing.Size(322, 443);
-            this.dataGridView1.TabIndex = 12;
-            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
@@ -157,6 +145,7 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(330, 777);
             this.tabControl1.TabIndex = 13;
+            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabPage_Click);
             // 
             // tabPage1
             // 
@@ -175,6 +164,18 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "COMID";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Location = new System.Drawing.Point(0, 296);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowHeadersWidth = 62;
+            this.dataGridView1.RowTemplate.Height = 33;
+            this.dataGridView1.Size = new System.Drawing.Size(322, 437);
+            this.dataGridView1.TabIndex = 12;
             // 
             // tabPage2
             // 
@@ -238,7 +239,7 @@
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.RowHeadersWidth = 62;
             this.dataGridView2.RowTemplate.Height = 33;
-            this.dataGridView2.Size = new System.Drawing.Size(322, 402);
+            this.dataGridView2.Size = new System.Drawing.Size(322, 437);
             this.dataGridView2.TabIndex = 20;
             // 
             // dateTimePicker3
@@ -265,7 +266,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(154, 38);
             this.button2.TabIndex = 17;
-            this.button2.Text = "Get NWM Data";
+            this.button2.Text = "Get Gage Data";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
@@ -279,10 +280,10 @@
             this.Name = "Form1";
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.webView21)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
@@ -300,7 +301,6 @@
         private Button button1;
         private DateTimePicker dateTimePicker1;
         private DateTimePicker dateTimePicker2;
-        private DataGridView dataGridView1;
         private TabControl tabControl1;
         private TabPage tabPage1;
         private TabPage tabPage2;
@@ -308,9 +308,10 @@
         private Label label6;
         private TextBox textBox2;
         private DateTimePicker dateTimePicker4;
-        private DataGridView dataGridView2;
         private DateTimePicker dateTimePicker3;
         private Label label5;
         private Button button2;
+        private DataGridView dataGridView1;
+        private DataGridView dataGridView2;
     }
 }
